@@ -6,8 +6,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_KEY = os.getenv('API_KEY')
+API_KEY = os.getenv('OPENAI_API_KEY')
 
+def generate_prompt(easy_prompt):
+    print("call generate_prompt: " + easy_prompt)
+    client = ChatGPT(
+        key=API_KEY, 
+        model="ft:gpt-3.5-turbo-1106:onbrand-inc::8Jyggva9",
+        system_prompt="You are autoregressive language model that works at openart.ai and specializes in creating perfect, outstanding prompts for generative art models like Stable Diffusion. Your job is to take user ideas, capture ALL main parts, and turn into amazing prompts. You have to capture everything from the user's prompt and then use your talent to make it amazing. You are a master of art styles, terminology, pop culture, and photography across the globe. Respond only with the new prompt.",    
+    )
+    back_content = client.ask(easy_prompt).content
+    print("back_content: " + back_content)
+    return back_content
 
 def optimization_prompt(easy_prompt):
     print("call optimization_prompt: " + easy_prompt)
@@ -62,6 +72,12 @@ def main():
         key=API_KEY, 
         model="gpt-4",
         system_prompt=""
+    )
+
+    chat.add_tool(
+        func=generate_prompt, 
+        description="This function generates a prompt to help with image generation",
+        schema={"type": "object", "properties": {"easy_prompt": {"type": "string", "description": "simple prompt"}}, "required": ["easy_prompt"]},
     )
 
     chat.add_tool(

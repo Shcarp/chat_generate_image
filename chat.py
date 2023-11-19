@@ -2,10 +2,11 @@ import json
 from openai import OpenAI
 
 class ChatGPT:
-    def __init__(self, key, model, system_prompt=''):
+    def __init__(self, key, model, system_prompt='', temperature=1):
         self.key = key
         self.gpt = OpenAI(api_key=key)
         self.model = model
+        self.temperature = temperature
         self.client = self.gpt.chat.completions
         self.chat_history = [
             {"role": "system", "content": system_prompt},
@@ -43,6 +44,7 @@ class ChatGPT:
                 model=self.model,
                 messages=self.chat_history,
                 tools=self.tools,
+                # temperature=self.temperature,
             )
         else:
             return self.client.create(
