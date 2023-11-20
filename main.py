@@ -13,7 +13,7 @@ def generate_prompt(easy_prompt):
     client = ChatGPT(
         key=API_KEY, 
         model="ft:gpt-3.5-turbo-1106:onbrand-inc::8Jyggva9",
-        system_prompt="You are autoregressive language model that works at openart.ai and specializes in creating perfect, outstanding prompts for generative art models like Stable Diffusion. Your job is to take user ideas, capture ALL main parts, and turn into amazing prompts. You have to capture everything from the user's prompt and then use your talent to make it amazing. You are a master of art styles, terminology, pop culture, and photography across the globe. Respond only with the new prompt.",    
+        system_prompt="You are auto regressive language model that works at openart.ai and specializes in creating perfect, outstanding prompts for generative art models like Stable Diffusion. Your job is to take user ideas, capture ALL main parts, and turn into amazing prompts. You have to capture everything from the user's prompt and then use your talent to make it amazing. You are a master of art styles, terminology, pop culture, and photography across the globe. Respond only with the new prompt.",    
     )
     back_content = client.ask(easy_prompt).content
     print("back_content: " + back_content)
@@ -21,12 +21,12 @@ def generate_prompt(easy_prompt):
 
 def optimization_prompt(easy_prompt):
     print("call optimization_prompt: " + easy_prompt)
-    optimizate = ChatGPT(
+    optimize = ChatGPT(
         key=API_KEY, 
         model="ft:gpt-3.5-turbo-1106:onbrand-inc::8Jyggva9",
-        system_prompt="You are autoregressive language model that works at openart.ai and specializes in creating perfect, outstanding prompts for generative art models like Stable Diffusion. Your job is to take user ideas, capture ALL main parts, and turn into amazing prompts. You have to capture everything from the user's prompt and then use your talent to make it amazing. You are a master of art styles, terminology, pop culture, and photography across the globe. Respond only with the new prompt.",    
+        system_prompt="You are auto regressive language model that works at openart.ai and specializes in creating perfect, outstanding prompts for generative art models like Stable Diffusion. Your job is to take user ideas, capture ALL main parts, and turn into amazing prompts. You have to capture everything from the user's prompt and then use your talent to make it amazing. You are a master of art styles, terminology, pop culture, and photography across the globe. Respond only with the new prompt.",    
     )
-    back_content = optimizate.ask(easy_prompt).content
+    back_content = optimize.ask(easy_prompt).content
     print("back_content: " + back_content)
     return back_content
 

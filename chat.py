@@ -1,5 +1,6 @@
 import json
 from openai import OpenAI
+from register_tools import register_tools, dispatch, get_tools_list
 
 class ChatGPT:
     def __init__(self, key, model, system_prompt='', temperature=1):
@@ -19,7 +20,7 @@ class ChatGPT:
                 "role": "user",
                 "content": question,
             })
-        response = self.reques_from_gpt()
+        response = self.request_from_gpt()
 
         response = self.deal_with_response(response)
 
@@ -38,7 +39,7 @@ class ChatGPT:
         })
         self.available_functions[func.__name__] = func
 
-    def reques_from_gpt(self):
+    def request_from_gpt(self):
         if self.tools:
             return self.client.create(
                 model=self.model,
@@ -63,7 +64,7 @@ class ChatGPT:
 
                 self.call_function(tool_call.id, function_name, function_args)
 
-            second_response = self.reques_from_gpt()
+            second_response = self.request_from_gpt()
 
             return self.deal_with_response(second_response)
 
