@@ -1,9 +1,9 @@
-from abc import abstractmethod, ABC
 import inspect
 import json
+import chromadb
 from dotenv import load_dotenv
 from openai import OpenAI
-import chromadb
+from abc import abstractmethod, ABC
 from types import GenericAlias
 from typing import get_origin, Annotated
 
@@ -17,6 +17,8 @@ _PARAM_TYPE_MAP = {
     "list": "array",
     "dict": "object"
 }
+
+__FUNCTIONS__ = {}
 
 client = OpenAI()
 
@@ -41,11 +43,12 @@ class StoreMedium(ABC):
         pass
 
 class ChromadbStoreMedium(StoreMedium):
-    def __init__(self, name: str, embedding: callable = None):
+    def __init__(self, name: str, embedding: callable = None, parse = None):
         if embedding == None:
             raise TypeError("embedding must be a callable")
         
         super().__init__(name)
+        self.parse = parse
         self.embedding = embedding
         self.db = chromadb.Client()
         self.collection = self.db.get_or_create_collection(name)
@@ -60,14 +63,31 @@ class ChromadbStoreMedium(StoreMedium):
 
     def search(self, query, n=10):
         embeddings = self.embedding(query) if self.embedding != None else []
-        return self.collection.query(
+        tool_list = []
+        source_list = self.collection.query(
             query_embeddings=[embeddings],
             n_results=n
         )
+        for source in source_list["metadatas"]:
+            tool_list.append(self.parse(source) if self.parse != None else source)
+        return tool_list
     
     def all(self):
-        return self.collection.get()
+        tool_list = []
+        source_list = self.collection.get()
+        for source in source_list["metadatas"]:
+            tool_list.append(self.parse(source) if self.parse != None else source)
+        return tool_list
 
+def parse_openai_tool(tool: dict):
+    return {
+        type: 'function',
+        function: {
+            "name": tool.name,
+            "description": tool.description,
+            "parameters": json.loads(tool.parameters)
+        }
+    }
 
 def translate_into_openai_tool(config: dict):
     tool_name = config["name"]
@@ -101,7 +121,6 @@ def translate_into_openai_tool(config: dict):
     }
 
     return openai_tool
-
 
 def register_tools(
     translation: callable = None, 
@@ -142,8 +161,6 @@ def register_tools(
 
         document = tool_def["description"]
 
-        print(document)
-
         if translation:
             tool_def = translation(tool_def)
 
@@ -155,7 +172,9 @@ def register_tools(
         }
     
         tools_store.add(add_data)
-
+        
+        __FUNCTIONS__[tool_name] = func
+        
         return func
     
     return register
@@ -170,6 +189,14 @@ def get_tools_list(
     
     return tools_store.search(query, n)
 
+def dispatch(data: dict):
+    tool_name = data["tool"]
+    tool_params = data["params"]
+
+    if tool_name not in __FUNCTIONS__:
+        raise ValueError(f"Tool `{tool_name}` not found")
+
+    return __FUNCTIONS__[tool_name](**tool_params)
 
 @register_tools(
     embedding=get_embedding, 
@@ -188,7 +215,7 @@ def test_func_1(
 def test_func_2(
     prompt: Annotated[str, "This is a prompt", True],
 ):
-    """qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"""
+    """This is a test2 function"""
     print(prompt)
 
 
@@ -199,7 +226,8 @@ def test_func_2(
 def test_func_3(
     prompt: Annotated[str, "This is a prompt", True],
 ):
-    """bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"""
+    """This is a test3 function"""
     print(prompt)
 
-print(get_tools_list(query="test", n=2))
+
+# print(get_tools_list())
