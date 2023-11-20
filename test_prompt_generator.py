@@ -1,4 +1,7 @@
+from concurrent.futures import ThreadPoolExecutor
+import json
 import os
+import threading
 from dotenv import load_dotenv
 from chat import ChatGPT
 
@@ -14,6 +17,13 @@ You are playing the role of an artistic Stable Diffusion prompt assistant.
 ## Task
 
 I will inform you of the theme for the prompt in natural language, and your task is to imagine a complete scene based on this theme and convert it into a detailed, high-quality prompt that allows Stable Diffusion to generate high-quality images.
+I'll tell you the amount you need to generate by“Prompt numbr”
+You need to convert the data to JSON and just return JSON to me
+json structure:
+[{
+    "prompt": "prompt content",
+    "negative_prompt": "negative prompt content"
+}]
 
 ## Background
 
@@ -67,10 +77,9 @@ Below, I will outline the steps for generating prompts. These prompts can be use
 - Design a hauntingly detailed, photorealistic close-up of a trembling explorer gazing up at a colossal giant silhouette through a thick, eerie mist in the early morning light, fantasy art, terror, intricate, digital painting, artstation.
 - Create a mesmerizing photorealistic portrait of a serene forest nymph, with intricate details, ethereal lighting, and a seamless blend of nature and fantasy, suitable for a fantasy book cover.
 '''
-
 client = ChatGPT(
     key=API_KEY, 
-    model="gpt-4",
+    model="gpt-3.5-turbo",
     system_prompt=STABLE_DIFFUSION_PROMPT_EXAMPLE,    
 )
 
@@ -83,3 +92,40 @@ while True:
 
     print("Bot: " + response.content)
 
+# # 创建一个线程池
+# pool = ThreadPoolExecutor(max_workers=10)
+
+# error_nums = 0
+# success_nums = 0
+
+# # 锁
+# lock = threading.Lock()
+# lock2 = threading.Lock()
+
+# for i in range(100):
+#     def ask():
+#         client = ChatGPT(
+#             key=API_KEY, 
+#             model="gpt-4",
+#             system_prompt=STABLE_DIFFUSION_PROMPT_EXAMPLE,    
+#         )
+#         try:
+#             res = client.ask('a dog')
+#             print(res.content)
+#             # 去掉里面的换行符
+#             res.content = res.content.replace('\n', '')
+#             data = json.loads(res.content)
+#             lock2.acquire()
+#             global success_nums
+#             success_nums += 1
+#             lock2.release()
+#             print(success_nums)
+#         except Exception as e:
+#             print(e)
+#             global error_nums
+#             lock.acquire()
+#             error_nums += 1
+#             lock.release()
+#             print(error_nums)
+
+#     pool.submit(ask)

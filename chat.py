@@ -15,6 +15,8 @@ class ChatGPT:
         self.available_functions = {}
         self.tools = None
 
+        self.tokenUsage = []
+
     def ask(self, question):
         self.chat_history.append({
                 "role": "user",
@@ -23,6 +25,8 @@ class ChatGPT:
         response = self.request_from_gpt()
 
         response = self.deal_with_response(response)
+
+        print(self.tokenUsage)
 
         return response.choices[0].message
 
@@ -40,18 +44,24 @@ class ChatGPT:
         self.available_functions[func.__name__] = func
 
     def request_from_gpt(self):
+        response = None
         if self.tools:
-            return self.client.create(
+            response = self.client.create(
                 model=self.model,
                 messages=self.chat_history,
                 tools=self.tools,
                 # temperature=self.temperature,
             )
         else:
-            return self.client.create(
+            response = self.client.create(
                 model=self.model,
                 messages=self.chat_history,
             )
+        
+        print(response)
+        self.tokenUsage.append(response.usage.total_tokens)
+
+        return response
 
     def deal_with_response(self, response):
         self.chat_history.append(response.choices[0].message)
